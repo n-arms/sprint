@@ -1,10 +1,10 @@
 package main
 
 import (
-    "fmt"
     "github.com/n-arms/sprint/internal"
+    "fmt"
 )
 
 func main() {
-    fmt.Println(sprint.SayHello("jim"));
+    fmt.Println(string(sprint.FindConfigs()))
 }
