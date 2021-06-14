@@ -6,5 +6,5 @@ import (
 )
 
 func main() {
-    fmt.Println(string(sprint.FindConfigs()))
+    fmt.Println(sprint.FindConfigs())
 }

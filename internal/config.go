@@ -4,33 +4,41 @@ import (
     "io/ioutil"
     "path/filepath"
     "os/user"
-    "bytes"
 )
-
-func check(e error) {
-    if e != nil {
-        panic(e)
+func findConfig(current string, out chan<- []byte) {
+    file, err := ioutil.ReadFile(filepath.Join(current, "/.sprint"))
+    if err == nil {
+        out <- file
     }
+    out <- []byte{}
 }
 
-func FindConfigs() []byte {
-    output := []byte{}
-    current, err := filepath.Abs(".")
-    check(err)
+func FindConfigs() [][]byte {
+    output := [][]byte{}
+    current, _ := filepath.Abs(".")
     usr, _ := user.Current()
     target := usr.HomeDir
+    result := make(chan []byte)
+    total := 0
     for {
-        file, err := ioutil.ReadFile(filepath.Join(current, "/.sprint"))
-        if err == nil {
-            file = bytes.TrimRight(file, "\n\t ")
-            output = append(output, append(file, byte('\n'))...)
-        }
+        go findConfig(current, result)
+        total += 1
 
         if current == target {
-            return output;
+            break
         }
 
         current = filepath.Clean(filepath.Join(current, "/.."))
     }
-    return output;
+
+    for i := 0; i < total; i ++ {
+        output = append(output, <-result)
+    }
+    return output
+}
+
+func SplitConfig(file []byte) (detect []byte, run []byte) {
+    detect = append(file, []byte("\nprint(detect())")...)
+    run = append(file, []byte("\nprint(run())")...)
+    return
 }
