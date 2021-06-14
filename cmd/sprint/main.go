@@ -6,5 +6,5 @@ import (
 )
 
 func main() {
-    fmt.Println(sprint.FindConfigs())
+    fmt.Println(sprint.DetectType([][]byte{[]byte("print(\"True\")")}))
 }
