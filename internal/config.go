@@ -4,6 +4,7 @@ import (
     "io/ioutil"
     "path/filepath"
     "os/user"
+    //"fmt"
 )
 func findConfig(current string, out chan<- []byte) {
     file, err := ioutil.ReadFile(filepath.Join(current, "/.sprint"))
@@ -32,13 +33,22 @@ func FindConfigs() [][]byte {
     }
 
     for i := 0; i < total; i ++ {
-        output = append(output, <-result)
+        r := <-result
+        if len(r) > 0 {
+            output = append(output, r)
+        }
     }
     return output
 }
 
 func SplitConfig(file []byte) (detect []byte, run []byte) {
-    detect = append(file, []byte("\nprint(detect())")...)
-    run = append(file, []byte("\nprint(run())")...)
+    detect = make([]byte, len(file))
+    run = make([]byte, len(file))
+    copy(detect, file)
+    copy(run, file)
+
+    run = append(run, []byte("\nprint(run())")...)
+    detect = append(detect, []byte("\nprint(detect())")...)
+
     return
 }

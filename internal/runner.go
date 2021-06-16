@@ -5,18 +5,17 @@ import (
     "os/exec"
     "os/user"
     "bytes"
-    "fmt"
 )
 
 type callable func(cmd []byte)
 
-func getType(tests [][]byte, path string) chan int {
-    out := make(chan int)
+func getType(tests [][]byte, path string) chan projectType {
+    out := make(chan projectType)
     go func() {
         for i, v := range tests {
-            result, err := exec.Command("bash", "-c", "cd "+path+" && python3 -c '"+string(v)+"'").Output()
+            result, err := exec.Command("bash", "-c", "cd "+path+" && python3 -c '"+string(v)+"'").CombinedOutput()
             if err == nil && bytes.Equal(result, []byte("True\n")) {
-                out <- i
+                out <- projectType{index: i, path: path}
             }
         }
         close(out)
@@ -24,12 +23,17 @@ func getType(tests [][]byte, path string) chan int {
     return out
 }
 
-func DetectType(tests [][]byte) []int {
-    output := []int{}
+type projectType struct {
+    index int;
+    path string;
+}
+
+func DetectType(tests [][]byte) []projectType {
+    output := []projectType{}
     current, _ := filepath.Abs(".")
     usr, _ := user.Current()
     target := usr.HomeDir
-    chans := []chan int{}
+    chans := []chan projectType{}
     for {
         chans = append(chans, getType(tests, current))
         if current == target {
@@ -47,3 +51,4 @@ func DetectType(tests [][]byte) []int {
 
     return output
 }
+
