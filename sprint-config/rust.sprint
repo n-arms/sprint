@@ -1,0 +1,8 @@
+import os
+
+def detect():
+    if os.getcwd() == "/home/nickarmstrong/Documents/code":
+        return 0
+
+def run():
+    print("running rust.sprint from", os.getcwd())

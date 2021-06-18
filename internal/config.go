@@ -6,6 +6,7 @@ import (
     "os/user"
     "sync"
     "bytes"
+    "os"
 )
 
 func findConfig(current string, configs *[][]byte, m *sync.Mutex) {
@@ -34,6 +35,17 @@ func FindConfigs() [][]byte {
     usr, _ := user.Current()
     var wg sync.WaitGroup
     var m sync.Mutex
+
+    ex, err := os.Executable()
+    if err != nil {
+        panic(err)
+    }
+    wg.Add(1)
+    go func(){
+        findConfig(filepath.Join(filepath.Dir(ex), "sprint-config"), &configs, &m)
+        wg.Done()
+    }()
+
     for {
         wg.Add(1)
         go func(current string){
@@ -48,6 +60,8 @@ func FindConfigs() [][]byte {
 
         current = filepath.Clean(filepath.Join(current, "/.."))
     }
+
+
 }
 
 func SplitConfig(file []byte) (detect []byte, run []byte) {
