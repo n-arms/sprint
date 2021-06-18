@@ -8,8 +8,6 @@ import (
     "sort"
 )
 
-type callable func(cmd []byte)
-
 func getType(tests [][]byte, path string) chan projectType {
     out := make(chan projectType)
     go func() {
@@ -54,9 +52,14 @@ func DetectType(tests [][]byte) []projectType {
             output = append(output, i)
         }
     }
-    sort.Slice(output, func(i, j int) bool {
-        return output[i].priority < output[j].priority
-    })
     return output
 }
 
+type Runnable func(path string, command []byte)
+func Run(commands [][]byte, types []projectType, rw Runnable) {
+    sort.Slice(types, func(i, j int) bool {
+        return types[i].priority < types[j].priority
+    })
+
+    rw(types[0].path, commands[types[0].index])
+}

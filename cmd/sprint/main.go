@@ -3,7 +3,28 @@ package main
 import (
     "github.com/n-arms/sprint/internal"
     "fmt"
+    "os/exec"
+    "io/ioutil"
 )
+
+func check(e error) {
+    if e != nil {
+        panic(e)
+    }
+}
+
+func ExecPrint(path string, command []byte) {
+    file, err := ioutil.TempFile("", "sprint*.py")
+    check(err)
+
+    err = ioutil.WriteFile(file.Name(), command, 0644)
+    check(err)
+
+    result, err := exec.Command("bash", "-c", "cd "+path+" && python3 "+file.Name()).CombinedOutput()
+    check(err)
+
+    fmt.Println(string(result))
+}
 
 func main() {
     configs := sprint.FindConfigs()
@@ -14,7 +35,6 @@ func main() {
         detectors = append(detectors, detect)
         runners = append(runners, run)
     }
-    for _, i := range sprint.DetectType(detectors) {
-        fmt.Println(i)
-    }
+    types := sprint.DetectType(detectors)
+    sprint.Run(runners, types, ExecPrint)
 }
