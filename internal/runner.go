@@ -4,7 +4,8 @@ import (
     "path/filepath"
     "os/exec"
     "os/user"
-    "bytes"
+    "strconv"
+    "sort"
 )
 
 type callable func(cmd []byte)
@@ -14,8 +15,12 @@ func getType(tests [][]byte, path string) chan projectType {
     go func() {
         for i, v := range tests {
             result, err := exec.Command("bash", "-c", "cd "+path+" && python3 -c '"+string(v)+"'").CombinedOutput()
-            if err == nil && bytes.Equal(result, []byte("True\n")) {
-                out <- projectType{index: i, path: path}
+            if err != nil {
+                continue
+            }
+            priority, err := strconv.Atoi(string(result[:len(result)-1]))
+            if err == nil {
+                out <- projectType{index: i, path: path, priority: priority}
             }
         }
         close(out)
@@ -26,6 +31,7 @@ func getType(tests [][]byte, path string) chan projectType {
 type projectType struct {
     index int;
     path string;
+    priority int;
 }
 
 func DetectType(tests [][]byte) []projectType {
@@ -48,7 +54,9 @@ func DetectType(tests [][]byte) []projectType {
             output = append(output, i)
         }
     }
-
+    sort.Slice(output, func(i, j int) bool {
+        return output[i].priority < output[j].priority
+    })
     return output
 }
 
