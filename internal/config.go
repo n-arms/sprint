@@ -4,41 +4,50 @@ import (
     "io/ioutil"
     "path/filepath"
     "os/user"
-    //"fmt"
+    "sync"
+    "bytes"
 )
-func findConfig(current string, out chan<- []byte) {
-    file, err := ioutil.ReadFile(filepath.Join(current, "/.sprint"))
-    if err == nil {
-        out <- file
+
+func findConfig(current string, configs *[][]byte, m *sync.Mutex) {
+    files, err := ioutil.ReadDir(current)
+    if err != nil {
+        panic(err)
     }
-    out <- []byte{}
+    localConfigs := [][]byte{}
+    for _, f := range files {
+        if len(f.Name()) >= 7 && bytes.Equal([]byte(f.Name())[len(f.Name())-7:], []byte(".sprint")) {
+            text, err := ioutil.ReadFile(filepath.Join(current, f.Name()))
+            if err != nil {
+                panic(err)
+            }
+            localConfigs = append(localConfigs, text)
+        }
+    }
+    m.Lock()
+    *configs = append(*configs, localConfigs...)
+    m.Unlock()
 }
 
 func FindConfigs() [][]byte {
-    output := [][]byte{}
+    configs := [][]byte{}
     current, _ := filepath.Abs(".")
     usr, _ := user.Current()
-    target := usr.HomeDir
-    result := make(chan []byte)
-    total := 0
+    var wg sync.WaitGroup
+    var m sync.Mutex
     for {
-        go findConfig(current, result)
-        total += 1
-
-        if current == target {
-            break
+        wg.Add(1)
+        go func(current string){
+            findConfig(current, &configs, &m)
+            wg.Done()
+        }(current)
+        
+        if current == usr.HomeDir {
+            wg.Wait()
+            return configs
         }
 
         current = filepath.Clean(filepath.Join(current, "/.."))
     }
-
-    for i := 0; i < total; i ++ {
-        r := <-result
-        if len(r) > 0 {
-            output = append(output, r)
-        }
-    }
-    return output
 }
 
 func SplitConfig(file []byte) (detect []byte, run []byte) {

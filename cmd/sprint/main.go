@@ -5,6 +5,7 @@ import (
     "fmt"
     "os/exec"
     "io/ioutil"
+    "os"
 )
 
 func check(e error) {
@@ -16,6 +17,7 @@ func check(e error) {
 func ExecPrint(path string, command []byte) {
     file, err := ioutil.TempFile("", "sprint*.py")
     check(err)
+    defer os.Remove(file.Name())
 
     err = ioutil.WriteFile(file.Name(), command, 0644)
     check(err)
