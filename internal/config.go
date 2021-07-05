@@ -7,21 +7,22 @@ import (
     "sync"
     "bytes"
     "os"
+    "log"
 )
 
 func findConfig(current string, configs *[][]byte, m *sync.Mutex) {
     files, err := ioutil.ReadDir(current)
     if err != nil {
-        panic(err)
+        log.Fatal("error", err, "at internal/config.go:15")
+        return
     }
     localConfigs := [][]byte{}
     for _, f := range files {
         if len(f.Name()) >= 7 && bytes.Equal([]byte(f.Name())[len(f.Name())-7:], []byte(".sprint")) {
             text, err := ioutil.ReadFile(filepath.Join(current, f.Name()))
-            if err != nil {
-                panic(err)
+            if err == nil {
+                localConfigs = append(localConfigs, text)
             }
-            localConfigs = append(localConfigs, text)
         }
     }
     m.Lock()
@@ -38,7 +39,7 @@ func FindConfigs() [][]byte {
 
     ex, err := os.Executable()
     if err != nil {
-        panic(err)
+        log.Fatal("unable to find executable")
     }
     wg.Add(1)
     go func(){

@@ -6,24 +6,25 @@ import (
     "os/exec"
     "io/ioutil"
     "os"
+    "log"
 )
-
-func check(e error) {
-    if e != nil {
-        panic(e)
-    }
-}
 
 func ExecPrint(path string, command []byte) {
     file, err := ioutil.TempFile("", "sprint*.py")
-    check(err)
+    if err != nil {
+        log.Fatal("failed to create temp file for running final executable, error: ", err)
+    }
     defer os.Remove(file.Name())
 
     err = ioutil.WriteFile(file.Name(), command, 0644)
-    check(err)
+    if err != nil {
+        log.Fatal("failed to write to temp file, error: ", err)
+    }
 
     result, err := exec.Command("bash", "-c", "cd "+path+" && python3 "+file.Name()).CombinedOutput()
-    check(err)
+    if err != nil {
+        log.Fatal("failed to exec python command with error ", err, " and output ", string(result))
+    }
 
     fmt.Println(string(result))
 }

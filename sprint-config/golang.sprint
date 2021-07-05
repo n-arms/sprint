@@ -1,0 +1,17 @@
+import os, subprocess
+
+def detect():
+    if os.path.isfile(os.path.join(os.getcwd(), "go.mod")):
+        return 0
+    return os.path.join(os.getcwd(), "go.mod")
+
+def run():
+    go_main_files = []
+    for dp, _, filenames in os.walk(os.getcwd()):
+        for file in filenames:
+            if file == "main.go":
+                go_main_files.append(os.path.join(dp, file))
+    result = subprocess.run(["go", "run", go_main_files[0]])
+    return result.returncode
+    
+

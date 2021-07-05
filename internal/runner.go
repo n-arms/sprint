@@ -9,21 +9,22 @@ import (
     "sync"
     "os"
     "io/ioutil"
+    "log"
 )
 
-func check(err error) {
+func check(err error, message... interface{}) {
     if err != nil {
-        panic(err)
+        log.Fatal(message...)
     }
 }
 
 func pyExec(command []byte, current string) ([]byte, error) {
     file, err := ioutil.TempFile("", "sprint_test*.py")
-    check(err)
+    check(err, "failed to create temp file, error:", err)
     defer os.Remove(file.Name())
 
     err = ioutil.WriteFile(file.Name(), command, 0644)
-    check(err)
+    check(err, "failed to write to temp file, error:", err)
 
     return exec.Command("bash", "-c", "cd "+current+" && python3 "+file.Name()).CombinedOutput()
 }
@@ -78,7 +79,7 @@ func Run(commands [][]byte, types []projectType, rw Runnable) {
         return types[i].priority < types[j].priority
     })
     if len(types) == 0 {
-        panic("no configs found")
+        log.Fatal("no runnable configs found")
     }
     rw(types[0].path, commands[types[0].index])
 }

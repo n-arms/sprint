@@ -1,8 +1,9 @@
-import os
+import os, os.path, subprocess
 
 def detect():
-    if os.getcwd() == "/home/nickarmstrong/Documents/code":
+    if os.path.isfile(os.path.join(os.getcwd(), "Cargo.toml")):
         return 0
 
 def run():
-    print("running rust.sprint from", os.getcwd())
+    result = subprocess.run(["cargo", "run"])
+    return result.returncode
