@@ -6,8 +6,9 @@ import (
     "os/user"
     "sync"
     "bytes"
-    "os"
     "log"
+    "os"
+    "fmt"
 )
 
 func findConfig(current string, configs *[][]byte, m *sync.Mutex) {
@@ -36,14 +37,14 @@ func FindConfigs() [][]byte {
     usr, _ := user.Current()
     var wg sync.WaitGroup
     var m sync.Mutex
-
-    ex, err := os.Executable()
+    config, err := os.UserConfigDir()
     if err != nil {
-        log.Fatal("unable to find executable")
+        log.Fatal("failed to find homedir with error", err)
     }
     wg.Add(1)
     go func(){
-        findConfig(filepath.Join(filepath.Dir(ex), "sprint-config"), &configs, &m)
+        fmt.Println("searching for configs at path", filepath.Join(config, "sprint"))
+        findConfig(filepath.Join(config, "sprint"), &configs, &m)
         wg.Done()
     }()
 

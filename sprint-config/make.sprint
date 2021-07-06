@@ -1,0 +1,10 @@
+import os, subprocess
+
+def detect():
+    if os.path.isfile(os.path.join(os.getcwd(), "makefile")):
+        return 0
+
+def run():
+    result = subprocess.run(["make", "run"])
+    return result.returncode
+    
