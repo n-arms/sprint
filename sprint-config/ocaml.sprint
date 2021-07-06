@@ -1,0 +1,17 @@
+import os, subprocess
+
+def detect():
+    if os.path.isfile(os.path.join(os.getcwd(), "dune-project")):
+        return 0
+
+def run():
+    result = subprocess.run(["dune", "build"])
+    if result.returncode != 0:
+        return result.returncode
+    exe = None
+    for dp, _, filenames in os.walk(os.getcwd()):
+        for file in filenames:
+            if file == "main.exe":
+                exe = os.path.join(dp, file)
+    result = subprocess.run([exe])
+    return result.returncode
