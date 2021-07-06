@@ -1,0 +1,9 @@
+import os, subprocess
+
+def detect():
+    if os.path.isfile(os.path.join(os.getcwd(), "main.py")):
+        return 0
+   
+def run():
+    result = subprocess.run(["python3", os.path.join(os.getcwd(), "main.py")])
+    return result.returncode

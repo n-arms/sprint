@@ -3,7 +3,6 @@ import os, subprocess
 def detect():
     if os.path.isfile(os.path.join(os.getcwd(), "go.mod")):
         return 0
-    return os.path.join(os.getcwd(), "go.mod")
 
 def run():
     go_main_files = []
